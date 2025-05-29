@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Camera and Map with Destination Search</title>
+    <title>Camera and Map with Navigation</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
     <style>
         body {
             margin: 0;
@@ -65,6 +66,7 @@
 
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
     <script>
         const videoElement = document.getElementById('video');
 
@@ -81,18 +83,19 @@
 
         const map = L.map('map');
 
+        let currentLat, currentLon;
+        
         function showCurrentLocation(position) {
-            const latitude = position.coords.latitude;
-            const longitude = position.coords.longitude;
-
-            map.setView([latitude, longitude], 15);
+            currentLat = position.coords.latitude;
+            currentLon = position.coords.longitude;
+            map.setView([currentLat, currentLon], 15);
 
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 maxZoom: 19,
                 attribution: '© OpenStreetMap contributors'
             }).addTo(map);
 
-            L.marker([latitude, longitude]).addTo(map).bindPopup("You are here!").openPopup();
+            L.marker([currentLat, currentLon]).addTo(map).bindPopup("You are here!").openPopup();
         }
 
         function handleError(error) {
@@ -130,9 +133,24 @@
                 suggestionItem.dataset.lon = result.lon;
 
                 suggestionItem.addEventListener('click', () => {
-                    map.setView([result.lat, result.lon], 15);
-                    L.marker([result.lat, result.lon]).addTo(map).bindPopup(result.display_name).openPopup();
-                    suggestionsContainer.innerHTML = ''; // Clear suggestions after selection
+                    const destinationLat = result.lat;
+                    const destinationLon = result.lon;
+
+                    // Center the map and add a marker for the selected destination
+                    map.setView([destinationLat, destinationLon], 15);
+                    L.marker([destinationLat, destinationLon]).addTo(map).bindPopup(result.display_name).openPopup();
+                    
+                    // Navigate from current location to destination
+                    L.Routing.control({
+                        waypoints: [
+                            L.latLng(currentLat, currentLon),
+                            L.latLng(destinationLat, destinationLon)
+                        ],
+                        routeWhileDragging: true
+                    }).addTo(map);
+
+                    // Clear suggestions after selection
+                    suggestionsContainer.innerHTML = '';
                     input.value = ''; // Clear the input field
                 });
 
