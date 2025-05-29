@@ -126,7 +126,7 @@
 
         if (navigator.geolocation) {
             initializeMap();
-            setTimeout( () => {
+            setInterval( () => {
                 const position = navigator.geolocation.getCurrentPosition();
                 showCurrentLocation(position);
             }, 1000)
