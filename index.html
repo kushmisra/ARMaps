@@ -11,10 +11,12 @@
             margin: 0;
             display: flex;
             height: 100vh;
+            position: relative;
         }
         #camera {
             flex: 1;
             background: black;
+            position: relative;
         }
         #map {
             flex: 1;
@@ -45,6 +47,7 @@
             background: white;
             border: 1px solid #ccc;
             border-radius: 4px;
+            display: none; /* Hide initially */
         }
         .suggestion-item {
             padding: 10px;
@@ -53,22 +56,34 @@
         .suggestion-item:hover {
             background: #f0f0f0;
         }
+        #arrow {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 50px; /* Adjust as necessary */
+            height: auto; // Adjust the size as needed
+            transform: translate(-50%, -100%); /* Center the arrow */
+            transition: transform 0.5s ease; /* Smooth rotation */
+        }
     </style>
 </head>
 <body>
     <div id="camera">
         <video id="video" autoplay playsinline></video>
+        <img id="arrow" src="data:image/png;base64,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" alt="Direction Arrow" />
     </div>
-    <div id="map">
-        <input type="text" id="destination-input" placeholder="Type a destination..." />
-        <div id="suggestions"></div>
-    </div>
+    <div id="map"></div>
+    <input type="text" id="destination-input" placeholder="Type a destination..." />
+    <div id="suggestions"></div>
 
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
     <script>
         const videoElement = document.getElementById('video');
+        let map;
+        let userMarker;
+        const arrowElement = document.getElementById('arrow');
 
         async function startCamera() {
             try {
@@ -81,21 +96,27 @@
 
         startCamera();
 
-        const map = L.map('map');
-
-        let currentLat, currentLon;
-        
-        function showCurrentLocation(position) {
-            currentLat = position.coords.latitude;
-            currentLon = position.coords.longitude;
-            map.setView([currentLat, currentLon], 15);
+        function initializeMap() {
+            map = L.map('map').setView([0, 0], 2);
 
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 maxZoom: 19,
                 attribution: '© OpenStreetMap contributors'
             }).addTo(map);
+        }
 
-            L.marker([currentLat, currentLon]).addTo(map).bindPopup("You are here!").openPopup();
+        function showCurrentLocation(position) {
+            const currentLat = position.coords.latitude;
+            const currentLon = position.coords.longitude;
+
+            if (!userMarker) {
+                userMarker = L.marker([currentLat, currentLon]).addTo(map).bindPopup("You are here!").openPopup();
+            } else {
+                userMarker.setLatLng([currentLat, currentLon]);
+            }
+
+            map.setView([currentLat, currentLon], 15);
+            updateArrow(currentLat, currentLon);
         }
 
         function handleError(error) {
@@ -104,19 +125,24 @@
         }
 
         if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(showCurrentLocation, handleError);
+            initializeMap();
+            navigator.geolocation.watchPosition(showCurrentLocation, handleError, {
+                enableHighAccuracy: true,
+                maximumAge: 30000,
+                timeout: 27000
+            });
         } else {
             alert("Geolocation is not supported by this browser.");
         }
 
         const input = document.getElementById('destination-input');
         const suggestionsContainer = document.getElementById('suggestions');
+        let targetDestination;
 
         input.addEventListener('input', async () => {
             const query = input.value;
-
-            // Clear previous suggestions
-            suggestionsContainer.innerHTML = '';
+            suggestionsContainer.innerHTML = ''; // Clear previous suggestions
+            suggestionsContainer.style.display = 'none'; // Hide until we have results
 
             if (query.length < 3) {
                 return; // Only search for suggestions when the input has at least 3 characters
@@ -136,27 +162,43 @@
                     const destinationLat = result.lat;
                     const destinationLon = result.lon;
 
-                    // Center the map and add a marker for the selected destination
                     map.setView([destinationLat, destinationLon], 15);
                     L.marker([destinationLat, destinationLon]).addTo(map).bindPopup(result.display_name).openPopup();
-                    
+
                     // Navigate from current location to destination
+                    targetDestination = { lat: destinationLat, lon: destinationLon };
                     L.Routing.control({
                         waypoints: [
-                            L.latLng(currentLat, currentLon),
+                            L.latLng(userMarker.getLatLng().lat, userMarker.getLatLng().lng),
                             L.latLng(destinationLat, destinationLon)
                         ],
                         routeWhileDragging: true
                     }).addTo(map);
 
-                    // Clear suggestions after selection
+                    // Clear suggestions and hide the suggestion container
                     suggestionsContainer.innerHTML = '';
+                    suggestionsContainer.style.display = 'none'; // Hide suggestions
                     input.value = ''; // Clear the input field
                 });
 
                 suggestionsContainer.appendChild(suggestionItem);
             });
+
+            // Show suggestions if any results found
+            if (results.length > 0) {
+                suggestionsContainer.style.display = 'block';
+            }
         });
+
+        function updateArrow(currentLat, currentLon) {
+            if (targetDestination) {
+                const destinationLat = targetDestination.lat;
+                const destinationLon = targetDestination.lon;
+
+                const angle = Math.atan2(destinationLon - currentLon, destinationLat - currentLat) * 180 / Math.PI; // Calculate the angle
+                arrowElement.style.transform = `translate(-50%, -100%) rotate(${angle}deg)`; // Rotate the arrow
+            }
+        }
 
     </script>
 </body>
