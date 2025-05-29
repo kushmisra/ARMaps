@@ -214,6 +214,15 @@
             }
         }
 
+        // Handle device orientation
+        window.addEventListener('deviceorientation', (event) => {
+            if (event.alpha !== null) {
+                // Rotate the arrow based on device orientation
+                const alpha = event.alpha;
+                arrowElement.style.transform = `translate(-50%, -100%) rotate(${alpha}deg)`;
+            }
+        });
+
     </script>
 </body>
 </html>
