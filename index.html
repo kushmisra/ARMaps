@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Camera and Map</title>
+    <title>Camera and Map with Destination Search</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <style>
         body {
@@ -18,11 +18,39 @@
         #map {
             flex: 1;
             height: 100%;
+            position: relative;
         }
         video {
             width: 100%;
             height: auto;
             display: block;
+        }
+        #destination-input {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 300px;
+            z-index: 1000; /* Ensure it's on top of the map */
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        #suggestions {
+            position: absolute;
+            top: 40px;
+            left: 10px;
+            width: 300px;
+            z-index: 1000;
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .suggestion-item {
+            padding: 10px;
+            cursor: pointer;
+        }
+        .suggestion-item:hover {
+            background: #f0f0f0;
         }
     </style>
 </head>
@@ -30,12 +58,14 @@
     <div id="camera">
         <video id="video" autoplay playsinline></video>
     </div>
-    <div id="map"></div>
+    <div id="map">
+        <input type="text" id="destination-input" placeholder="Type a destination..." />
+        <div id="suggestions"></div>
+    </div>
 
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
-        // Accessing the camera
         const videoElement = document.getElementById('video');
 
         async function startCamera() {
@@ -49,47 +79,67 @@
 
         startCamera();
 
-        // Initializing the map using Leaflet when the DOM is ready
-        document.addEventListener('DOMContentLoaded', () => {
-            const map = L.map('map');
-            
-            // Show current location on the map
-            function showCurrentLocation(position) {
-                const latitude = position.coords.latitude;
-                const longitude = position.coords.longitude;
+        const map = L.map('map');
 
-                // Set map view to the user's current location
-                map.setView([latitude, longitude], 15);
+        function showCurrentLocation(position) {
+            const latitude = position.coords.latitude;
+            const longitude = position.coords.longitude;
 
-                // Add OpenStreetMap tile layer
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    maxZoom: 19,
-                    attribution: '© OpenStreetMap contributors'
-                }).addTo(map);
+            map.setView([latitude, longitude], 15);
 
-                // Create a red marker at the current location
-                const marker = L.marker([latitude, longitude], {
-                    icon: L.icon({
-                        iconUrl: 'https://cdn-icons-png.flaticon.com/512/109/109618.png', // URL for a red marker icon
-                        iconSize: [25, 41], // Size of the marker icon
-                        iconAnchor: [12, 41], // Position of the icon
-                        popupAnchor: [1, -34], // Position of the popup
-                    }),
-                }).addTo(map).bindPopup("You are here!").openPopup();
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+
+            L.marker([latitude, longitude]).addTo(map).bindPopup("You are here!").openPopup();
+        }
+
+        function handleError(error) {
+            console.error("Error getting location: ", error);
+            alert("Unable to retrieve your location. Make sure location services are enabled.");
+        }
+
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(showCurrentLocation, handleError);
+        } else {
+            alert("Geolocation is not supported by this browser.");
+        }
+
+        const input = document.getElementById('destination-input');
+        const suggestionsContainer = document.getElementById('suggestions');
+
+        input.addEventListener('input', async () => {
+            const query = input.value;
+
+            // Clear previous suggestions
+            suggestionsContainer.innerHTML = '';
+
+            if (query.length < 3) {
+                return; // Only search for suggestions when the input has at least 3 characters
             }
 
-            // Handle geolocation errors
-            function handleError(error) {
-                console.error("Error getting location: ", error);
-                alert("Unable to retrieve your location. Make sure location services are enabled.");
-            }
+            const request = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
+            const results = await request.json();
 
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(showCurrentLocation, handleError);
-            } else {
-                alert("Geolocation is not supported by this browser.");
-            }
+            results.forEach(result => {
+                const suggestionItem = document.createElement('div');
+                suggestionItem.className = 'suggestion-item';
+                suggestionItem.textContent = result.display_name;
+                suggestionItem.dataset.lat = result.lat;
+                suggestionItem.dataset.lon = result.lon;
+
+                suggestionItem.addEventListener('click', () => {
+                    map.setView([result.lat, result.lon], 15);
+                    L.marker([result.lat, result.lon]).addTo(map).bindPopup(result.display_name).openPopup();
+                    suggestionsContainer.innerHTML = ''; // Clear suggestions after selection
+                    input.value = ''; // Clear the input field
+                });
+
+                suggestionsContainer.appendChild(suggestionItem);
+            });
         });
+
     </script>
 </body>
 </html>
