@@ -152,7 +152,8 @@
             const request = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
             const results = await request.json();
 
-            results.forEach(result => {
+            for(let idx = 0; idx < results.length; idx++) {
+                const result = results[idx];
                 const suggestionItem = document.createElement('div');
                 suggestionItem.className = 'suggestion-item';
                 suggestionItem.textContent = result.display_name;
@@ -185,8 +186,10 @@
 
                 if(inputStarted) {
                    suggestionsContainer.appendChild(suggestionItem);
+                } else {
+                    break;
                 }
-            });
+            }
 
             // Show suggestions if any results found
             if (results.length > 0) {
