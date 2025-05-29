@@ -181,9 +181,12 @@
                     // Clear suggestions and hide the suggestion container
                     suggestionsContainer.innerHTML = '';
                     suggestionsContainer.style.display = 'none'; // Hide suggestions
+                    suggestionsContainer.style.display = 'block';
                 });
 
                 if(inputStarted) {
+                    console.log(idx);
+                    console.log(query);
                    suggestionsContainer.appendChild(suggestionItem);
                 } else {
                     suggestionsContainer.style.display = 'block';
