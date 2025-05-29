@@ -141,6 +141,7 @@
 
         input.addEventListener('input', async () => {
             const query = input.value;
+            let inputStarted = true;
             suggestionsContainer.innerHTML = ''; // Clear previous suggestions
             suggestionsContainer.style.display = 'none'; // Hide until we have results
 
@@ -161,6 +162,7 @@
                 suggestionItem.addEventListener('click', () => {
                     const destinationLat = result.lat;
                     const destinationLon = result.lon;
+                    inputStarted = false;
 
                     map.setView([destinationLat, destinationLon], 15);
                     L.marker([destinationLat, destinationLon]).addTo(map).bindPopup(result.display_name).openPopup();
@@ -181,7 +183,9 @@
                     input.value = ''; // Clear the input field
                 });
 
-                suggestionsContainer.appendChild(suggestionItem);
+                if(inputStarted) {
+                   suggestionsContainer.appendChild(suggestionItem);
+                }
             });
 
             // Show suggestions if any results found
