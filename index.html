@@ -126,6 +126,10 @@
 
         if (navigator.geolocation) {
             initializeMap();
+            setTimeout( () => {
+                const position = navigator.geolocation.getCurrentPosition();
+                showCurrentLocation(position);
+            }, 1000)
             navigator.geolocation.watchPosition(showCurrentLocation, handleError, {
                 enableHighAccuracy: true,
                 maximumAge: 30000,
